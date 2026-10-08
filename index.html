@@ -1001,7 +1001,7 @@ const stations = [
     ]
   },
   {
-    num:12, chapter:"demarche", title:"Station finale — Le guichet",
+    num:12, chapter:"demarche", title:"Étape finale — Le guichet",
     categorie:"Faire sa demande",
     questions:[
       { format:"qcm", question:"Chloé a décidé de lancer sa demande de RQTH mais ne sait pas où l'envoyer. Auprès de quel organisme doit-elle déposer sa demande ?",
@@ -1026,9 +1026,9 @@ const rightsRecap = [
 ];
 
 const agendaPlan = [
-  { time:"0–5 min", title:"Lancement", desc:"Accueil, présentation du parcours en 6 chapitres et 12 stations, formation des équipes.", detail:"Affiche le QR code de l'affiche de présentation (ou projette-le). Forme des équipes de 2 à 4 jeunes. Précise que le parcours est organisé en 6 chapitres : Comprendre le handicap, Santé mentale, Études, Aides financières, Monde du travail, Faire sa demande." },
+  { time:"0–5 min", title:"Lancement", desc:"Accueil, présentation du parcours en 6 chapitres et 12 étapes, formation des équipes.", detail:"Affiche le QR code de l'affiche de présentation (ou projette-le). Forme des équipes de 2 à 4 jeunes. Précise que le parcours est organisé en 6 chapitres : Comprendre le handicap, Santé mentale, Études, Aides financières, Monde du travail, Faire sa demande." },
   { time:"5–10 min", title:"Mise en contexte", desc:"Courte introduction orale sur la RQTH et pourquoi ce sujet concerne les jeunes dès 16 ans.", detail:"Insiste sur 3 messages avant de lancer le jeu : la RQTH concerne aussi les handicaps invisibles, elle est confidentielle, et c'est une démarche réversible et gratuite. Préviens que le parcours mélange QCM, vrai/faux, mises en situation et temps de débat en équipe. Signale aussi les options d'accessibilité (police, taille de texte, thème, lecture vocale) disponibles via l'icône ⚙ en haut de l'écran." },
-  { time:"10–45 min", title:"Le parcours (12 stations, 24 questions)", desc:"Les équipes parcourent les stations à leur rythme. Les questions \"débat\" demandent 2 minutes d'échange en équipe avant de continuer.", detail:"Circule entre les équipes, en particulier sur les stations de débat (3, 7, 10) qui suscitent le plus de discussion. Les stations santé mentale (4-5) et confidentialité méritent aussi un temps d'écoute si des jeunes réagissent personnellement." },
+  { time:"10–45 min", title:"Le parcours (12 étapes, 24 questions)", desc:"Les équipes parcourent les étapes à leur rythme. Les questions \"débat\" demandent 2 minutes d'échange en équipe avant de continuer.", detail:"Circule entre les équipes, en particulier sur les étapes de débat (3, 7, 10) qui suscitent le plus de discussion. Les étapes santé mentale (4-5) et confidentialité méritent aussi un temps d'écoute si des jeunes réagissent personnellement." },
   { time:"45–53 min", title:"Débrief collectif", desc:"Retour en groupe sur les découvertes, les surprises, les questions de débat abordées.", detail:"Reprends les 3 questions de débat (âge minimum, RQTH en entretien, signaler son handicap en candidature) et demande aux équipes ce qu'elles en ont conclu. Corrige les dernières idées reçues persistantes." },
   { time:"53–60 min", title:"Clôture et ressources", desc:"Affichage de l'écran récapitulatif des droits, rappel du QR code de l'application à emporter.", detail:"Projette l'écran final (passeport des droits) en mode joueur. Rappelle que la démarche se fait à la MDPH, qu'aucune décision n'est à prendre dans l'immédiat, et que l'appli reste accessible après l'atelier grâce au QR code de l'affiche." }
 ];
@@ -1044,7 +1044,7 @@ let synthUtterance = null;
 
 /* ===================== CODE ANIMATEUR =====================
    Modifie la valeur ci-dessous pour changer le code de déverrouillage.
-   Le mode Animateur (déroulé, minuteur, QR codes des stations) reste
+   Le mode Animateur (déroulé, minuteur, QR codes des étapes) reste
    inaccessible tant que ce code n'est pas saisi. */
 const FACILITATOR_CODE = "HANDILAB";
 let facUnlocked = false;
@@ -1262,8 +1262,8 @@ function renderEntry(){
     return `
       <button class="${cls}" ${clickAttr}${ariaLabel}>
         <div class="cnum" aria-hidden="true">${icon(chapterIllustrations[c.id])}<span class="cnum-badge">${String(idx+1).padStart(2,'0')}</span></div>
-        <div class="ctxt"><strong>${c.title}</strong><span>Stations ${range[0]+1} à ${range[1]+1}</span></div>
-        <div class="ccount">${stCount} station${stCount>1?'s':''} · ${qCount} questions${chapDone ? '<span class="ccheck">' + icon('check') + ' Terminé</span>' : ''}</div>
+        <div class="ctxt"><strong>${c.title}</strong><span>Étapes ${range[0]+1} à ${range[1]+1}</span></div>
+        <div class="ccount">${stCount} étape${stCount>1?'s':''} · ${qCount} questions${chapDone ? '<span class="ccheck">' + icon('check') + ' Terminé</span>' : ''}</div>
       </button>`;
   }).join('');
 
@@ -1271,8 +1271,8 @@ function renderEntry(){
     <div class="entry-wrap">
       <div class="entry-cartouche">
         <div class="kicker">${icon('sparkles')} C'est parti pour l'aventure</div>
-        <h1 tabindex="-1" data-focus="1">12 stations à explorer.<br><span class="accent">${totalQuestions()} questions</span> qui vont te surprendre.</h1>
-        <p class="lede">Le parcours se joue en 6 chapitres et 12 stations, un peu comme un jeu de piste. Choisis un chapitre pour te lancer, avance question après question grâce aux boutons « Suivant » et « Précédent », et amuse-toi : chaque bonne réponse t'en apprend un peu plus sur tes droits. Pas de stress : il n'y a pas de note, tu avances à ton rythme. Ta progression reste affichée tant que tu gardes la page ouverte.</p>
+        <h1 tabindex="-1" data-focus="1">12 étapes à explorer.<br><span class="accent">${totalQuestions()} questions</span> qui vont te surprendre.</h1>
+        <p class="lede">Le parcours se joue en 6 chapitres et 12 étapes, un peu comme un jeu de piste. Choisis un chapitre pour te lancer, avance question après question grâce aux boutons « Suivant » et « Précédent », et amuse-toi : chaque bonne réponse t'en apprend un peu plus sur tes droits. Pas de stress : il n'y a pas de note, tu avances à ton rythme. Ta progression reste affichée tant que tu gardes la page ouverte.</p>
       </div>
       <div class="chapter-grid">${cards}</div>
       <p class="entry-hint">${icon('bulb')} Astuce animateur : chaque équipe peut démarrer où elle veut, l'appli affiche ce qui est déjà validé pendant la partie.</p>
@@ -1317,10 +1317,10 @@ function globalProgressHtml(){
   const pct = Math.round((doneQ / totalQ) * 100);
   const doneStations = Object.keys(state.done).length;
   return `
-    <div class="global-progress" role="img" aria-label="Progression globale : ${doneQ} questions sur ${totalQ}, ${doneStations} stations validées sur ${stations.length}">
+    <div class="global-progress" role="img" aria-label="Progression globale : ${doneQ} questions sur ${totalQ}, ${doneStations} étapes validées sur ${stations.length}">
       <span class="gp-label">${icon('flag')} ${pct}%</span>
       <div class="gp-track"><div class="gp-fill" style="width:${pct}%"></div></div>
-      <span class="gp-badge">${doneStations}/${stations.length} stations ${icon('star')}</span>
+      <span class="gp-badge">${doneStations}/${stations.length} étapes ${icon('star')}</span>
     </div>
   `;
 }
@@ -1331,6 +1331,9 @@ function renderStation(i, qIdx){
   const isStationDone = !!state.done[i];
   const qKey = i + '-' + qIdx;
   const alreadyAnswered = !!state.progress[qKey];
+  const prevT = prevTarget(i, qIdx);
+  const prevLocked = !!(prevT && state.progress[prevT.i + '-' + prevT.q]);
+  const showPrevBtn = (i>0 || qIdx>0) && !prevLocked;
   const formatLabel = { qcm:"QCM", vf:"Vrai / Faux", situation:"Mise en situation", debat:"Débat d'équipe" };
   const speakHtml = prefs.voiceOn
     ? `<button class="speak-btn" type="button" aria-label="Écouter la question à voix haute" onclick='speakText(${JSON.stringify(q.question).replace(/'/g,"&#39;")}, this)'>${icon('speaker')}</button>`
@@ -1400,11 +1403,11 @@ function renderStation(i, qIdx){
     ${consigneHtml}
     ${globalProgressHtml()}
     <div class="chapter-bar">${chapterChipsHtml(i)}</div>
-    <div class="route-strip" role="img" aria-label="Progression : station ${i+1} sur ${stations.length}">${routeStripHtml(i)}</div>
+    <div class="route-strip" role="img" aria-label="Progression : étape ${i+1} sur ${stations.length}">${routeStripHtml(i)}</div>
     <div class="sheet" id="station-sheet">
       <div class="stamp-mark ${isStationDone ? 'show' : ''}" id="stamp" aria-hidden="true">VALIDÉ<br>${icon('star')}</div>
       <div class="station-eyebrow">
-        <span class="station-num">STATION ${s.num} / ${stations.length}</span>
+        <span class="station-num">ÉTAPE ${s.num} / ${stations.length}</span>
         <span class="label">${s.categorie}</span>
       </div>
       <div class="station-head-row">
@@ -1418,7 +1421,7 @@ function renderStation(i, qIdx){
       ${bodyHtml}
       <div class="feedback ${feedbackCls}" id="feedback" tabindex="-1" aria-label="Explication de la réponse">${feedbackContent}</div>
       <div class="step-nav">
-        <button class="prev-step-btn ${(i>0 || qIdx>0) ? 'show' : ''}" onclick="prevStep(${i},${qIdx})">${icon('arrowLeft')} Question précédente</button>
+        <button class="prev-step-btn ${showPrevBtn ? 'show' : ''}" onclick="prevStep(${i},${qIdx})">${icon('arrowLeft')} Question précédente</button>
         <button class="next-btn ${alreadyAnswered ? 'show' : ''}" id="next-btn" onclick="nextStep(${i},${qIdx})">${nextLabel(i,qIdx)}</button>
       </div>
     </div>
@@ -1443,7 +1446,7 @@ function nextLabel(i, qIdx){
   if(i === stations.length - 1){
     return allStationsDone() ? "Voir le passeport des droits" : icon('arrowRight') + " Retour aux chapitres";
   }
-  return icon('arrowRight') + " Station suivante";
+  return icon('arrowRight') + " Étape suivante";
 }
 
 function refreshNextButtonLabel(i, qIdx){
@@ -1451,7 +1454,15 @@ function refreshNextButtonLabel(i, qIdx){
   if(btn) btn.innerHTML = nextLabel(i, qIdx);
 }
 
+function prevTarget(i, qIdx){
+  if(qIdx > 0) return { i: i, q: qIdx - 1 };
+  if(i > 0) return { i: i - 1, q: stations[i-1].questions.length - 1 };
+  return null; /* déjà sur la toute première question : "précédent" ramène à l'accueil */
+}
+
 function prevStep(i, qIdx){
+  const target = prevTarget(i, qIdx);
+  if(target && state.progress[target.i + '-' + target.q]) return; /* question précédente déjà terminée : on n'y revient pas */
   if(qIdx > 0){
     state.qIndex = qIdx - 1;
   } else if(i > 0){
@@ -1588,11 +1599,11 @@ function renderFinal(){
       <div class="badge-block">
         <div class="badge-icon" aria-hidden="true">${icon('medal')}</div>
         <h3>Bravo, parcours terminé !</h3>
-        <p>Tu as exploré les ${stations.length} stations et découvert tes droits.</p>
+        <p>Tu as exploré les ${stations.length} étapes et découvert tes droits.</p>
       </div>
       <div class="label">${icon('trophy')} Passeport des droits</div>
       <h2 tabindex="-1" data-focus="1">Parcours terminé !</h2>
-      <div class="score-line">${stationsDone} / ${stations.length} stations · ${qDone} / ${totalQuestions()} questions complétées</div>
+      <div class="score-line">${stationsDone} / ${stations.length} étapes · ${qDone} / ${totalQuestions()} questions complétées</div>
       <div class="rights-list">${items}</div>
       <div class="cert-box">
         <div class="label cert-label">${icon('medal')} Ton certificat personnalisé</div>
@@ -1671,7 +1682,7 @@ function buildCertificateInner(prenom){
         </div>
         <h1 style="font-family:'Fredoka','Nunito',sans-serif; font-size:32px; color:#2B2440; margin:0 0 6px;">Bravo</h1>
         <div style="font-family:'Fredoka','Nunito',sans-serif; font-size:36px; color:#C23B22; margin:10px 0 20px; word-break:break-word;">${safePrenom}</div>
-        <p style="color:#5A5266; font-weight:600; font-size:16px; max-width:520px; margin:0 auto 28px; line-height:1.6;">a terminé avec succès Le Parcours RQTH — ${stations.length} stations et ${totalQuestions()} questions sur les droits des jeunes en situation de handicap.</p>
+        <p style="color:#5A5266; font-weight:600; font-size:16px; max-width:520px; margin:0 auto 28px; line-height:1.6;">a terminé avec succès Le Parcours RQTH — ${stations.length} étapes et ${totalQuestions()} questions sur les droits des jeunes en situation de handicap.</p>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:32px; padding-top:18px; border-top:2px dashed #E8D2AE; font-size:13px; color:#5A5266; font-weight:700;">
           <span>${dateStr}</span>
           <span>Handi'Games — UGECAM Centre La Mollière</span>
@@ -1696,7 +1707,7 @@ function buildRecapInner(){
     }).join('');
     return `
       <section style="page-break-inside:avoid; margin-bottom:8px;">
-        <h2 style="font-family:'Fredoka','Nunito',sans-serif; font-size:18px; color:#C23B22; border-bottom:2px solid #E8D2AE; padding-bottom:6px; margin:28px 0 14px;">Station ${s.num} — ${s.title}</h2>
+        <h2 style="font-family:'Fredoka','Nunito',sans-serif; font-size:18px; color:#C23B22; border-bottom:2px solid #E8D2AE; padding-bottom:6px; margin:28px 0 14px;">Étape ${s.num} — ${s.title}</h2>
         ${qs}
       </section>`;
   }).join('');
@@ -1755,7 +1766,7 @@ function renderFacilitator(){
     <div class="fac-header">
       <div>
         <h1 tabindex="-1" data-focus="1">Déroulé d'atelier — 1h</h1>
-        <p>Le Parcours RQTH · 12 stations · ${totalQuestions()} questions · sensibilisation aux droits des jeunes pouvant prétendre à la RQTH.</p>
+        <p>Le Parcours RQTH · 12 étapes · ${totalQuestions()} questions · sensibilisation aux droits des jeunes pouvant prétendre à la RQTH.</p>
       </div>
       <div class="timer-box">
         <div class="t-label">TEMPS RESTANT</div>
@@ -1785,7 +1796,7 @@ function renderFacilitator(){
     </div>
 
     <div class="printable-note">
-      <strong>Un seul QR code pour tout le parcours :</strong> celui de l'affiche de présentation (« Le Jeu de Piste RQTH : Votre Guide d'Aventure »). Affiche-le ou projette-le en début d'atelier : les jeunes le scannent, choisissent un chapitre et progressent dans les 12 stations depuis leur téléphone. Les stations de débat (3, 7, 10) gagnent à se faire dans un coin plus calme de la salle pour permettre l'échange en équipe.
+      <strong>Un seul QR code pour tout le parcours :</strong> celui de l'affiche de présentation (« Le Jeu de Piste RQTH : Votre Guide d'Aventure »). Affiche-le ou projette-le en début d'atelier : les jeunes le scannent, choisissent un chapitre et progressent dans les 12 étapes depuis leur téléphone. Les étapes de débat (3, 7, 10) gagnent à se faire dans un coin plus calme de la salle pour permettre l'échange en équipe.
     </div>
   `;
 }
