@@ -802,10 +802,10 @@ function stationColor(s){
 }
 
 /* ===================== QR CODE UNIQUE ===================== */
-/* QR code officiel du jeu de piste (issu de l'affiche de présentation).
-   Il renvoie vers : https://parcourshandijeune.netlify.app/ */
-const QR_IMG = "data:image/png;base64,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";
-const QR_URL_LABEL = "parcourshandijeune.netlify.app";
+/* QR code officiel du jeu de piste.
+   Il renvoie vers : https://handigames.netlify.app/ */
+const QR_IMG = "data:image/png;base64,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";
+const QR_URL_LABEL = "handigames.netlify.app";
 
 /* Les QR codes par station n'existent plus : l'appli démarre toujours sur
    l'écran d'accueil. Si une ancienne adresse contient "?station=…", on la
@@ -1382,11 +1382,22 @@ function dismissConsigne(){
   if(t) t.focus();
 }
 
+function allStationsDone(){
+  return stations.every((_, idx) => !!state.done[idx]);
+}
+
 function nextLabel(i, qIdx){
   const s = stations[i];
   if(qIdx < s.questions.length - 1) return icon('arrowRight') + " Question suivante";
-  if(i === stations.length - 1) return "Voir le passeport des droits";
+  if(i === stations.length - 1){
+    return allStationsDone() ? "Voir le passeport des droits" : icon('arrowRight') + " Retour aux chapitres";
+  }
   return icon('arrowRight') + " Station suivante";
+}
+
+function refreshNextButtonLabel(i, qIdx){
+  const btn = document.getElementById('next-btn');
+  if(btn) btn.innerHTML = nextLabel(i, qIdx);
 }
 
 function prevStep(i, qIdx){
@@ -1410,6 +1421,7 @@ function revealDebate(i, qIdx){
   fb.classList.add('show','neutral');
   fb.innerHTML = `<div class="fb-title">${icon('chat')} <span>À retenir</span></div>${q.explication}<div class="right-info"><strong>Ton droit ici&nbsp;:</strong> ${q.droit}</div>`;
   markQuestionDone(i, qIdx, true);
+  refreshNextButtonLabel(i, qIdx);
   document.getElementById('next-btn').classList.add('show');
   fb.focus();
 }
@@ -1446,6 +1458,7 @@ function answer(stationIdx, qIdx, choiceIdx){
   fb.innerHTML = `<div class="fb-title">${title}</div>${q.explication}<div class="right-info"><strong>Ton droit ici&nbsp;:</strong> ${q.droit}</div>`;
 
   markQuestionDone(stationIdx, qIdx, correct);
+  refreshNextButtonLabel(stationIdx, qIdx);
   document.getElementById('next-btn').classList.add('show');
   fb.focus();
 
@@ -1482,8 +1495,16 @@ function nextStep(i, qIdx){
   } else if(i < stations.length - 1){
     state.current = i + 1;
     state.qIndex = 0;
-  } else {
+  } else if(allStationsDone()){
+    /* Toutes les stations sont validées : le parcours est vraiment terminé. */
     state.screen = 'final';
+    render(false);
+    return;
+  } else {
+    /* On vient de finir la station 12, mais d'autres stations n'ont pas
+       encore été faites (cas d'une équipe qui a commencé par ce chapitre) :
+       on la renvoie choisir un autre chapitre plutôt que de clore le parcours. */
+    state.screen = 'entry';
     render(false);
     return;
   }
