@@ -460,10 +460,18 @@ main{ flex:1; max-width:760px; width:100%; margin:0 auto; padding:1.1rem 1rem 3r
 .chapter-card:nth-child(6){ --chapter-color: var(--accent-violet-strong); }
 
 .chapter-card .cnum{
-  font-family:var(--font-display); font-weight:700; color:var(--text-on-accent); font-size:1.45em; flex-shrink:0; width:60px; height:60px;
+  position:relative; font-family:var(--font-display); font-weight:700; color:var(--text-on-accent); font-size:1.45em; flex-shrink:0; width:60px; height:60px;
   border-radius:18px; display:flex; align-items:center; justify-content:center; transform: rotate(-4deg);
   background: var(--chapter-color, var(--accent-coral));
+  box-shadow:3px 3px 0 rgba(0,0,0,0.18);
   transition: transform 0.2s;
+}
+.chapter-card .cnum .ico-svg{ width:30px; height:30px; }
+.chapter-card .cnum-badge{
+  position:absolute; bottom:-7px; right:-7px; width:22px; height:22px; border-radius:8px;
+  background:var(--surface-card); color:var(--text-primary); font-size:0.62em; font-weight:800;
+  display:flex; align-items:center; justify-content:center; transform:rotate(4deg);
+  border:2px solid var(--chapter-color, var(--accent-coral)); box-shadow:1px 1px 0 var(--surface-border);
 }
 .chapter-card:hover .cnum{ transform: rotate(4deg) scale(1.08); }
 .chapter-card .ctxt{ text-align:left; flex:1; }
@@ -828,6 +836,13 @@ const chapters = [
   { id:"demarche", title:"Faire sa demande", stationRange:[11,11] }
 ];
 
+/* Petite illustration (icône) qui résume le thème de chaque chapitre,
+   affichée sur sa carte à l'accueil. */
+const chapterIllustrations = {
+  comprendre:'bulb', sante:'brain', etudes:'cap',
+  aides:'piggyBank', travail:'briefcase', demarche:'clipboardCheck'
+};
+
 const stations = [
   {
     num:1, chapter:"comprendre", title:"Le point de départ",
@@ -1018,7 +1033,7 @@ const agendaPlan = [
 
 /* ===================== ÉTAT ===================== */
 
-let state = { mode:'player', screen:'entry', current:0, qIndex:0, done:{}, progress:{}, prenom:'', consigneSeen:false };
+let state = { mode:'player', screen:'entry', current:0, qIndex:0, done:{}, progress:{}, answers:{}, prenom:'', consigneSeen:false };
 let history = [];
 let timer = { seconds:3600, running:false, interval:null };
 let prefs = { font:'default', size:'medium', theme:'light', voiceOn:false };
@@ -1241,7 +1256,7 @@ function renderEntry(){
     const chapDone = stationIdxs.every(idx2 => state.done[idx2]);
     return `
       <button class="chapter-card" onclick="goToStation(${range[0]})">
-        <div class="cnum" aria-hidden="true">${String(idx+1).padStart(2,'0')}</div>
+        <div class="cnum" aria-hidden="true">${icon(chapterIllustrations[c.id])}<span class="cnum-badge">${String(idx+1).padStart(2,'0')}</span></div>
         <div class="ctxt"><strong>${c.title}</strong><span>Stations ${range[0]+1} à ${range[1]+1}</span></div>
         <div class="ccount">${stCount} station${stCount>1?'s':''} · ${qCount} questions${chapDone ? '<span class="ccheck">' + icon('check') + ' Terminé</span>' : ''}</div>
       </button>`;
@@ -1309,23 +1324,46 @@ function renderStation(i, qIdx){
   const s = stations[i];
   const q = s.questions[qIdx];
   const isStationDone = !!state.done[i];
+  const qKey = i + '-' + qIdx;
+  const alreadyAnswered = !!state.progress[qKey];
   const formatLabel = { qcm:"QCM", vf:"Vrai / Faux", situation:"Mise en situation", debat:"Débat d'équipe" };
   const speakHtml = prefs.voiceOn
     ? `<button class="speak-btn" type="button" aria-label="Écouter la question à voix haute" onclick='speakText(${JSON.stringify(q.question).replace(/'/g,"&#39;")}, this)'>${icon('speaker')}</button>`
     : '';
 
   let bodyHtml = '';
+  let feedbackCls = '';
+  let feedbackContent = '';
+
   if(q.format === 'debat'){
     bodyHtml = `
       <div class="debate-prompt">${q.prompt}</div>
       <div class="q-head"><div class="q-text">${q.question}</div>${speakHtml}</div>
-      <button class="debate-btn" id="debate-reveal" onclick="revealDebate(${i},${qIdx})">Voir l'éclairage après discussion</button>
+      ${alreadyAnswered ? '' : `<button class="debate-btn" id="debate-reveal" onclick="revealDebate(${i},${qIdx})">Voir l'éclairage après discussion</button>`}
     `;
+    if(alreadyAnswered){
+      feedbackCls = 'show neutral';
+      feedbackContent = `<div class="fb-title">${icon('chat')} <span>À retenir</span></div>${q.explication}<div class="right-info"><strong>Ton droit ici&nbsp;:</strong> ${q.droit}</div>`;
+    }
   } else {
     const optClass = q.format === 'vf' ? 'options vf-row' : 'options';
-    let optionsHtml = q.options.map((opt, idx) =>
-      `<button class="opt-btn" data-idx="${idx}" onclick="answer(${i},${qIdx},${idx})">${opt}</button>`
-    ).join('');
+    const chosenIdx = alreadyAnswered ? state.answers[qKey] : null;
+    let optionsHtml = q.options.map((opt, idx) => {
+      let cls = 'opt-btn';
+      let markHtml = '';
+      let disabledAttr = '';
+      if(alreadyAnswered){
+        disabledAttr = 'disabled';
+        if(idx === q.correct){
+          cls += ' correct';
+          markHtml = optMarkHtml('correct');
+        } else if(idx === chosenIdx){
+          cls += ' wrong';
+          markHtml = optMarkHtml('wrong');
+        }
+      }
+      return `<button class="${cls}" data-idx="${idx}" ${disabledAttr} onclick="answer(${i},${qIdx},${idx})">${markHtml}${opt}</button>`;
+    }).join('');
     const questionBlock = q.format === 'situation'
       ? `<div class="q-head"><div class="q-situation">${q.question}</div>${speakHtml}</div>`
       : `<div class="q-head"><div class="q-text">${q.question}</div>${speakHtml}</div>`;
@@ -1333,6 +1371,14 @@ function renderStation(i, qIdx){
       ${questionBlock}
       <div class="${optClass}" id="opt-wrap" role="group" aria-label="Choix de réponse">${optionsHtml}</div>
     `;
+    if(alreadyAnswered){
+      const correct = chosenIdx === q.correct;
+      feedbackCls = 'show ' + (correct ? 'good' : 'bad');
+      const title = correct
+        ? icon('checkCircle') + ' <span>Bonne réponse !</span>'
+        : icon('xCircle') + ' <span>Pas tout à fait</span>';
+      feedbackContent = `<div class="fb-title">${title}</div>${q.explication}<div class="right-info"><strong>Ton droit ici&nbsp;:</strong> ${q.droit}</div>`;
+    }
   }
 
   const consigneHtml = state.consigneSeen ? '' : `
@@ -1365,10 +1411,10 @@ function renderStation(i, qIdx){
         <span class="format-tag ${q.format}">${formatLabel[q.format]}</span>
       </div>
       ${bodyHtml}
-      <div class="feedback" id="feedback" tabindex="-1" aria-label="Explication de la réponse"></div>
+      <div class="feedback ${feedbackCls}" id="feedback" tabindex="-1" aria-label="Explication de la réponse">${feedbackContent}</div>
       <div class="step-nav">
         <button class="prev-step-btn ${(i>0 || qIdx>0) ? 'show' : ''}" onclick="prevStep(${i},${qIdx})">${icon('arrowLeft')} Question précédente</button>
-        <button class="next-btn" id="next-btn" onclick="nextStep(${i},${qIdx})">${nextLabel(i,qIdx)}</button>
+        <button class="next-btn ${alreadyAnswered ? 'show' : ''}" id="next-btn" onclick="nextStep(${i},${qIdx})">${nextLabel(i,qIdx)}</button>
       </div>
     </div>
   `;
@@ -1413,6 +1459,9 @@ function prevStep(i, qIdx){
 }
 
 function revealDebate(i, qIdx){
+  const key = i + '-' + qIdx;
+  if(state.progress[key]) return; /* éclairage déjà révélé : verrouillé, on ignore tout nouveau clic */
+  state.answers[key] = 'revealed';
   const s = stations[i];
   const q = s.questions[qIdx];
   const revealBtn = document.getElementById('debate-reveal');
@@ -1426,22 +1475,28 @@ function revealDebate(i, qIdx){
   fb.focus();
 }
 
-function setOptMark(btn, type){
-  clearOptMark(btn);
+function optMarkHtml(type){
   const label = type === 'correct' ? 'Bonne réponse' : 'Mauvaise réponse';
   const ico = type === 'correct' ? icon('checkCircle') : icon('xCircle');
-  btn.insertAdjacentHTML('afterbegin', '<span class="opt-mark" aria-hidden="true">' + ico + '</span><span class="sr-only">' + label + ' : </span>');
+  return '<span class="opt-mark" aria-hidden="true">' + ico + '</span><span class="sr-only">' + label + ' : </span>';
+}
+function setOptMark(btn, type){
+  clearOptMark(btn);
+  btn.insertAdjacentHTML('afterbegin', optMarkHtml(type));
 }
 function clearOptMark(btn){
   btn.querySelectorAll('.opt-mark, .sr-only').forEach(el => el.remove());
 }
 
 function answer(stationIdx, qIdx, choiceIdx){
+  const key = stationIdx + '-' + qIdx;
+  if(state.progress[key]) return; /* question déjà répondue : verrouillée, on ignore tout nouveau clic */
   const s = stations[stationIdx];
   const q = s.questions[qIdx];
   const buttons = document.querySelectorAll('#opt-wrap .opt-btn');
   buttons.forEach(b => b.disabled = true);
 
+  state.answers[key] = choiceIdx;
   const correct = choiceIdx === q.correct;
   buttons[choiceIdx].classList.add(correct ? 'correct' : 'wrong');
   setOptMark(buttons[choiceIdx], correct ? 'correct' : 'wrong');
@@ -1677,7 +1732,7 @@ function downloadRecap(){
 function restart(){
   history = [];
   updateBackButton();
-  state = { mode:'player', screen:'entry', current:0, qIndex:0, done:{}, progress:{}, prenom:'', consigneSeen:false };
+  state = { mode:'player', screen:'entry', current:0, qIndex:0, done:{}, progress:{}, answers:{}, prenom:'', consigneSeen:false };
   facUnlocked = false;
   render(false);
 }
