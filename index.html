@@ -438,6 +438,21 @@ main{ flex:1; max-width:760px; width:100%; margin:0 auto; padding:1.1rem 1rem 3r
 
 .chapter-grid{ display:flex; flex-direction:column; gap:1.2rem; margin-top:1rem; text-align:left; }
 
+.entry-done-banner{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+  background: linear-gradient(135deg, var(--accent-coral), color-mix(in srgb, var(--accent-coral) 70%, var(--accent-sun-pop)));
+  color:#fff; border-radius:var(--radius-lg); padding:1.2rem 1.4rem; margin:1.2rem 0;
+  box-shadow: 4px 4px 0 var(--surface-border);
+}
+.entry-done-banner .edb-txt{ display:flex; flex-direction:column; gap:0.2rem; }
+.entry-done-banner .edb-txt span{ font-weight:600; opacity:0.95; font-size:0.92rem; }
+.entry-done-banner .edb-btn{
+  background:#fff; color:var(--accent-coral); border:none; border-radius:999px; font-weight:800;
+  padding:0.7rem 1.2rem; cursor:pointer; font-family:inherit; white-space:nowrap;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.15); transition: transform 0.15s;
+}
+.entry-done-banner .edb-btn:hover{ transform: translateY(-2px); }
+
 /* chaque carte porte une bande colorée à gauche + un fond très légèrement teinté
    pour gagner du poids visuel propre, distinct des autres cartes du parcours */
 .chapter-card{
@@ -752,10 +767,19 @@ footer .footer-legal .fl-brand{ color:var(--accent-teal-strong); font-family:var
   <!-- La zone de génération PDF doit rester dans le flux normal du document
        (pas en position:fixed/absolute) : html2canvas ne mesure pas correctement
        la hauteur d'un élément positionné hors du flux, ce qui produisait un PDF
-       totalement vide. On la cache donc via un parent de hauteur 0, et non via
-       un décalage hors-écran. -->
-  <div style="height:0; overflow:hidden;">
+       totalement vide. On la cache donc via un parent de hauteur 0 (et non via
+       un décalage hors-écran) le reste du temps. Sur certains navigateurs
+       mobiles, un élément resté masqué (hauteur 0 / hors-écran) n'est tout
+       simplement jamais "peint" par le moteur de rendu, et html2canvas capture
+       alors une image blanche de la bonne taille mais vide : juste avant la
+       génération, on agrandit donc temporairement ce parent et on affiche un
+       cache opaque par-dessus tout l'écran, le temps de la capture (voir
+       showPdfCaptureOverlay/hidePdfCaptureOverlay). -->
+  <div id="pdf-zone-wrap" style="max-height:0; overflow:hidden;">
     <div id="pdf-zone" aria-hidden="true" style="width:760px; background:#ffffff;"></div>
+  </div>
+  <div id="pdf-capture-cover" style="display:none; position:fixed; inset:0; z-index:99999; background:#FFF7EC; align-items:center; justify-content:center; font-family:'Nunito','Segoe UI',sans-serif; font-weight:700; color:#2B2440; font-size:16px; text-align:center; padding:24px;">
+    Génération de ton PDF…
   </div>
 
   <footer>
@@ -1259,7 +1283,18 @@ function renderView(){
 
 /* ---------- ENTRÉE ---------- */
 
+function goFinal(){
+  pushHistory();
+  state.screen = 'final';
+  render(false);
+}
+
 function renderEntry(){
+  const doneBanner = allStationsDone() ? `
+    <div class="entry-done-banner">
+      <div class="edb-txt"><strong>${icon('trophy')} Parcours terminé !</strong><span>Tu as fini les 12 étapes : retrouve ton certificat et ton récapitulatif.</span></div>
+      <button class="edb-btn" onclick="goFinal()">${icon('medal')} Voir mon parcours terminé</button>
+    </div>` : '';
   const cards = chapters.map((c, idx) => {
     const range = c.stationRange;
     const stCount = range[1] - range[0] + 1;
@@ -1284,6 +1319,7 @@ function renderEntry(){
         <h1 tabindex="-1" data-focus="1">12 étapes à explorer.<br><span class="accent">${totalQuestions()} questions</span> qui vont te surprendre.</h1>
         <p class="lede">Le parcours se joue en 6 chapitres et 12 étapes, un peu comme un jeu de piste. Choisis un chapitre pour te lancer, avance question après question grâce aux boutons « Suivant » et « Précédent », et amuse-toi : chaque bonne réponse t'en apprend un peu plus sur tes droits. Pas de stress : il n'y a pas de note, tu avances à ton rythme. Ta progression reste affichée tant que tu gardes la page ouverte.</p>
       </div>
+      ${doneBanner}
       <div class="chapter-grid">${cards}</div>
       <p class="entry-hint">${icon('bulb')} Astuce animateur : chaque équipe peut démarrer où elle veut, l'appli affiche ce qui est déjà validé pendant la partie.</p>
     </div>
@@ -1708,20 +1744,57 @@ function waitForFontsReady(){
   return Promise.race([ready, safety]).then(() => new Promise(resolve => setTimeout(resolve, 120)));
 }
 
+/* Sur certains navigateurs mobiles, un élément resté masqué (hauteur 0 +
+   overflow:hidden) n'est jamais réellement "peint" par le moteur de rendu
+   (optimisation de performance) : html2canvas capture alors une image
+   blanche, de la bonne taille, mais totalement vide. Pour l'éviter de façon
+   fiable sur tous les navigateurs, on rend la zone réellement visible à
+   l'écran juste avant la capture (donc forcément peinte), tout en la
+   masquant à l'utilisateur derrière un cache opaque plein écran. */
+function showPdfCaptureOverlay(){
+  const wrap = document.getElementById('pdf-zone-wrap');
+  const cover = document.getElementById('pdf-capture-cover');
+  if(wrap) wrap.style.maxHeight = 'none';
+  if(cover) cover.style.display = 'flex';
+  try{ window.scrollTo(0, 0); }catch(e){}
+}
+function hidePdfCaptureOverlay(){
+  const wrap = document.getElementById('pdf-zone-wrap');
+  const cover = document.getElementById('pdf-capture-cover');
+  if(cover) cover.style.display = 'none';
+  if(wrap) wrap.style.maxHeight = '0';
+}
+
 function exportPdfFromZone(pdfOptions, zone, filename, btn){
   const mobile = isMobileDevice();
 
   const cleanup = () => {
+    hidePdfCaptureOverlay();
     zone.innerHTML = '';
     if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.originalText; }
   };
 
-  waitForFontsReady().then(() => runExportPdfFromZone(pdfOptions, zone, filename, btn, mobile, cleanup));
+  /* Sur mobile : le téléchargement direct via <a download> est souvent
+     ignoré silencieusement. On ouvre le PDF dans un nouvel onglet à la
+     place (visionneuse native du téléphone, avec bouton Partager/Enregistrer).
+     La fenêtre doit être ouverte tout de suite, pendant le clic de
+     l'utilisateur : si on attend la fin d'une opération asynchrone (ici,
+     l'attente des polices) avant de l'ouvrir, le navigateur mobile la
+     bloque comme un pop-up indésirable. */
+  let popupWin = null;
+  if(mobile){
+    popupWin = window.open('', '_blank');
+    if(popupWin) popupWin.document.write('<p style="font-family:sans-serif; padding:24px;">Préparation de ton PDF...</p>');
+  }
+
+  waitForFontsReady().then(() => runExportPdfFromZone(pdfOptions, zone, filename, btn, mobile, cleanup, popupWin));
 }
 
-function runExportPdfFromZone(pdfOptions, zone, filename, btn, mobile, cleanup){
+function runExportPdfFromZone(pdfOptions, zone, filename, btn, mobile, cleanup, popupWin){
+  showPdfCaptureOverlay();
+
   /* Sur ordinateur : méthode d'origine (.save()), fiable et déjà éprouvée,
-     on n'y touche pas. */
+     on n'y touche pas (en dehors de l'ajout du cache plein écran). */
   if(!mobile){
     try{
       html2pdf().set(pdfOptions).from(zone).save().then(cleanup).catch(() => {
@@ -1734,15 +1807,6 @@ function runExportPdfFromZone(pdfOptions, zone, filename, btn, mobile, cleanup){
     }
     return;
   }
-
-  /* Sur mobile : le téléchargement direct via <a download> est souvent
-     ignoré silencieusement. On ouvre le PDF dans un nouvel onglet à la
-     place (visionneuse native du téléphone, avec bouton Partager/Enregistrer).
-     La fenêtre doit être ouverte tout de suite, pendant le clic de
-     l'utilisateur : si on attend la fin de la génération (asynchrone), le
-     navigateur mobile bloque l'ouverture comme un pop-up indésirable. */
-  const popupWin = window.open('', '_blank');
-  if(popupWin) popupWin.document.write('<p style="font-family:sans-serif; padding:24px;">Préparation de ton PDF...</p>');
 
   const fail = () => {
     if(popupWin && !popupWin.closed) popupWin.close();
