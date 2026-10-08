@@ -749,7 +749,14 @@ footer .footer-legal .fl-brand{ color:var(--accent-teal-strong); font-family:var
 
   <main id="main"></main>
 
-  <div id="pdf-zone" aria-hidden="true" style="position:fixed; top:0; left:-10000px; width:760px; background:#ffffff;"></div>
+  <!-- La zone de génération PDF doit rester dans le flux normal du document
+       (pas en position:fixed/absolute) : html2canvas ne mesure pas correctement
+       la hauteur d'un élément positionné hors du flux, ce qui produisait un PDF
+       totalement vide. On la cache donc via un parent de hauteur 0, et non via
+       un décalage hors-écran. -->
+  <div style="height:0; overflow:hidden;">
+    <div id="pdf-zone" aria-hidden="true" style="width:760px; background:#ffffff;"></div>
+  </div>
 
   <footer>
     <div class="footer-legal">
@@ -1336,7 +1343,7 @@ function renderStation(i, qIdx){
   const alreadyAnswered = !!state.progress[qKey];
   const prevT = prevTarget(i, qIdx);
   const prevLocked = !!(prevT && state.progress[prevT.i + '-' + prevT.q]);
-  const showPrevBtn = (i>0 || qIdx>0) && !prevLocked;
+  const showPrevBtn = !!prevT && !prevLocked;
   const formatLabel = { qcm:"QCM", vf:"Vrai / Faux", situation:"Mise en situation", debat:"Débat d'équipe" };
   const speakHtml = prefs.voiceOn
     ? `<button class="speak-btn" type="button" aria-label="Écouter la question à voix haute" onclick='speakText(${JSON.stringify(q.question).replace(/'/g,"&#39;")}, this)'>${icon('speaker')}</button>`
@@ -1443,10 +1450,21 @@ function allStationsDone(){
   return stations.every((_, idx) => !!state.done[idx]);
 }
 
+/* Borne [début, fin] du chapitre auquel appartient la station i. Utilisé pour
+   ne jamais faire déborder la progression automatique sur le chapitre suivant :
+   une équipe qui choisit un chapitre doit y rester jusqu'à la fin de CE
+   chapitre, pas être entraînée malgré elle dans le chapitre d'après. */
+function currentChapterRange(i){
+  const s = stations[i];
+  const c = chapters.find(ch => ch.id === s.chapter);
+  return c ? c.stationRange : [i, i];
+}
+
 function nextLabel(i, qIdx){
   const s = stations[i];
   if(qIdx < s.questions.length - 1) return icon('arrowRight') + " Question suivante";
-  if(i === stations.length - 1){
+  const [, chapEnd] = currentChapterRange(i);
+  if(i === chapEnd){
     return allStationsDone() ? "Voir le passeport des droits" : icon('arrowRight') + " Retour aux chapitres";
   }
   return icon('arrowRight') + " Étape suivante";
@@ -1459,8 +1477,12 @@ function refreshNextButtonLabel(i, qIdx){
 
 function prevTarget(i, qIdx){
   if(qIdx > 0) return { i: i, q: qIdx - 1 };
-  if(i > 0) return { i: i - 1, q: stations[i-1].questions.length - 1 };
-  return null; /* déjà sur la toute première question : "précédent" ramène à l'accueil */
+  const [chapStart] = currentChapterRange(i);
+  /* On ne remonte jamais avant la première station du chapitre choisi :
+     sinon "Précédent" ferait entrer dans le chapitre précédent, qui n'a
+     peut-être jamais été choisi par l'équipe. */
+  if(i > chapStart) return { i: i - 1, q: stations[i-1].questions.length - 1 };
+  return null; /* déjà sur la toute première question du chapitre : "précédent" ramène à l'accueil */
 }
 
 function prevStep(i, qIdx){
@@ -1468,9 +1490,9 @@ function prevStep(i, qIdx){
   if(target && state.progress[target.i + '-' + target.q]) return; /* question précédente déjà terminée : on n'y revient pas */
   if(qIdx > 0){
     state.qIndex = qIdx - 1;
-  } else if(i > 0){
-    state.current = i - 1;
-    state.qIndex = stations[i-1].questions.length - 1;
+  } else if(target){
+    state.current = target.i;
+    state.qIndex = target.q;
   } else {
     state.screen = 'entry';
   }
@@ -1579,9 +1601,14 @@ function trackCourseCompleted(){
 
 function nextStep(i, qIdx){
   const s = stations[i];
+  const [, chapEnd] = currentChapterRange(i);
   if(qIdx < s.questions.length - 1){
     state.qIndex = qIdx + 1;
-  } else if(i < stations.length - 1){
+  } else if(i < chapEnd){
+    /* Encore une station à faire dans CE chapitre : on continue, sans jamais
+       déborder sur le chapitre suivant (sinon une équipe qui a choisi un
+       chapitre se retrouve à compléter le suivant sans l'avoir choisi, et
+       le retrouve ensuite déjà "terminé" quand elle veut vraiment le jouer). */
     state.current = i + 1;
     state.qIndex = 0;
   } else if(allStationsDone()){
@@ -1591,9 +1618,9 @@ function nextStep(i, qIdx){
     render(false);
     return;
   } else {
-    /* On vient de finir la station 12, mais d'autres stations n'ont pas
-       encore été faites (cas d'une équipe qui a commencé par ce chapitre) :
-       on la renvoie choisir un autre chapitre plutôt que de clore le parcours. */
+    /* Fin du chapitre en cours, mais d'autres chapitres n'ont pas encore
+       été faits : on renvoie choisir le chapitre suivant plutôt que d'y
+       entrer automatiquement. */
     state.screen = 'entry';
     render(false);
     return;
