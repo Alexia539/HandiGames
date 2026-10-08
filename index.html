@@ -451,6 +451,8 @@ main{ flex:1; max-width:760px; width:100%; margin:0 auto; padding:1.1rem 1rem 3r
 }
 .chapter-card{ background-image: linear-gradient(90deg, color-mix(in srgb, var(--chapter-color, var(--accent-coral)) 7%, var(--surface-card)), var(--surface-card) 60%); }
 .chapter-card:hover{ transform: translate(-2px,-3px); box-shadow: 6px 8px 0 var(--chapter-color, var(--accent-coral)); }
+.chapter-card--done{ cursor:not-allowed; }
+.chapter-card--done:hover{ transform:none; box-shadow:4px 4px 0 var(--surface-border); }
 
 .chapter-card:nth-child(1){ --chapter-color: var(--accent-coral); }
 .chapter-card:nth-child(2){ --chapter-color: var(--accent-violet); }
@@ -1254,8 +1256,11 @@ function renderEntry(){
     const qCount = stations.slice(range[0], range[1]+1).reduce((a,s)=>a+s.questions.length,0);
     const stationIdxs = Array.from({length:stCount}, (_,k)=>range[0]+k);
     const chapDone = stationIdxs.every(idx2 => state.done[idx2]);
+    const cls = 'chapter-card' + (chapDone ? ' chapter-card--done' : '');
+    const clickAttr = chapDone ? 'disabled aria-disabled="true"' : `onclick="goToStation(${range[0]})"`;
+    const ariaLabel = chapDone ? ` aria-label="${c.title}, chapitre déjà terminé"` : '';
     return `
-      <button class="chapter-card" onclick="goToStation(${range[0]})">
+      <button class="${cls}" ${clickAttr}${ariaLabel}>
         <div class="cnum" aria-hidden="true">${icon(chapterIllustrations[c.id])}<span class="cnum-badge">${String(idx+1).padStart(2,'0')}</span></div>
         <div class="ctxt"><strong>${c.title}</strong><span>Stations ${range[0]+1} à ${range[1]+1}</span></div>
         <div class="ccount">${stCount} station${stCount>1?'s':''} · ${qCount} questions${chapDone ? '<span class="ccheck">' + icon('check') + ' Terminé</span>' : ''}</div>
