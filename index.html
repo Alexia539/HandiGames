@@ -9,6 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Statistiques de visites, anonymes et sans cookies (RGPD) -->
+<script data-goatcounter="https://handigames.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 <style>
 @font-face{
   font-family:'OpenDyslexic';
@@ -1559,6 +1562,21 @@ function markQuestionDone(stationIdx, qIdx, success){
   if(gp) gp.outerHTML = globalProgressHtml();
 }
 
+/* Envoie un événement de statistique (GoatCounter) à chaque fois qu'un
+   parcours est terminé en entier, en plus du comptage de visites classique.
+   N'envoie rien si le script de stats n'est pas chargé (ex. en local). */
+function trackCourseCompleted(){
+  try{
+    if(window.goatcounter && typeof window.goatcounter.count === 'function'){
+      window.goatcounter.count({
+        path: 'parcours-termine',
+        title: 'Parcours terminé',
+        event: true
+      });
+    }
+  }catch(e){}
+}
+
 function nextStep(i, qIdx){
   const s = stations[i];
   if(qIdx < s.questions.length - 1){
@@ -1569,6 +1587,7 @@ function nextStep(i, qIdx){
   } else if(allStationsDone()){
     /* Toutes les stations sont validées : le parcours est vraiment terminé. */
     state.screen = 'final';
+    trackCourseCompleted();
     render(false);
     return;
   } else {
