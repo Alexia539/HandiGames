@@ -1654,6 +1654,71 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+/* Sur mobile (surtout Safari iOS, mais aussi certains navigateurs integres
+   Android), le telechargement direct via un lien <a download> est souvent
+   silencieusement ignore : rien ne se passe, aucun fichier n'apparait nulle
+   part. La methode fiable sur tous les telephones consiste a ouvrir le PDF
+   dans un nouvel onglet : le telephone affiche alors sa visionneuse PDF native,
+   avec un bouton "Partager" / "Enregistrer" pour le sauvegarder. */
+function isMobileDevice(){
+  return /Android|iPhone|iPad|iPod|Mobile|webOS/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); /* iPad recents */
+}
+
+function exportPdfFromZone(pdfOptions, zone, filename, btn){
+  const mobile = isMobileDevice();
+
+  const cleanup = () => {
+    zone.innerHTML = '';
+    if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.originalText; }
+  };
+
+  /* Sur ordinateur : méthode d'origine (.save()), fiable et déjà éprouvée,
+     on n'y touche pas. */
+  if(!mobile){
+    try{
+      html2pdf().set(pdfOptions).from(zone).save().then(cleanup).catch(() => {
+        cleanup();
+        alert("La génération du PDF a échoué. Vérifie ta connexion internet et réessaie.");
+      });
+    }catch(e){
+      cleanup();
+      alert("La génération du PDF a échoué. Vérifie ta connexion internet et réessaie.");
+    }
+    return;
+  }
+
+  /* Sur mobile : le téléchargement direct via <a download> est souvent
+     ignoré silencieusement. On ouvre le PDF dans un nouvel onglet à la
+     place (visionneuse native du téléphone, avec bouton Partager/Enregistrer).
+     La fenêtre doit être ouverte tout de suite, pendant le clic de
+     l'utilisateur : si on attend la fin de la génération (asynchrone), le
+     navigateur mobile bloque l'ouverture comme un pop-up indésirable. */
+  const popupWin = window.open('', '_blank');
+  if(popupWin) popupWin.document.write('<p style="font-family:sans-serif; padding:24px;">Préparation de ton PDF...</p>');
+
+  const fail = () => {
+    if(popupWin && !popupWin.closed) popupWin.close();
+    cleanup();
+    alert("La génération du PDF a échoué. Vérifie ta connexion internet, autorise les pop-up pour ce site si ton téléphone les bloque, puis réessaie.");
+  };
+
+  try{
+    html2pdf().set(pdfOptions).from(zone).outputPdf('blob').then(blob => {
+      const url = URL.createObjectURL(blob);
+      if(popupWin && !popupWin.closed){
+        popupWin.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      cleanup();
+    }).catch(fail);
+  }catch(e){
+    fail();
+  }
+}
+
 function downloadCertificate(){
   const input = document.getElementById('cert-prenom-input');
   const prenom = input.value.trim();
@@ -1672,20 +1737,13 @@ function downloadCertificate(){
 
   const filename = 'certificat-' + prenom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-') + '.pdf';
 
-  html2pdf().set({
+  exportPdfFromZone({
     margin: 0,
     filename: filename,
     image: { type:'jpeg', quality:0.98 },
     html2canvas: { scale:2, backgroundColor:'#ffffff', useCORS:true },
     jsPDF: { unit:'pt', format:'a4', orientation:'landscape' }
-  }).from(zone).save().then(() => {
-    zone.innerHTML = '';
-    if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.originalText; }
-  }).catch(() => {
-    zone.innerHTML = '';
-    if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.originalText; }
-    alert("La génération du PDF a échoué. Vérifie ta connexion internet et réessaie.");
-  });
+  }, zone, filename, btn);
 }
 
 function buildCertificateInner(prenom){
@@ -1747,21 +1805,14 @@ function downloadRecap(){
   zone.innerHTML = buildRecapInner();
   zone.style.width = '760px';
 
-  html2pdf().set({
+  exportPdfFromZone({
     margin: [28, 24],
     filename: 'recap-parcours-rqth.pdf',
     image: { type:'jpeg', quality:0.98 },
     html2canvas: { scale:2, backgroundColor:'#ffffff', useCORS:true },
     jsPDF: { unit:'pt', format:'a4', orientation:'portrait' },
     pagebreak: { mode:['css','avoid-all'] }
-  }).from(zone).save().then(() => {
-    zone.innerHTML = '';
-    if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.originalText; }
-  }).catch(() => {
-    zone.innerHTML = '';
-    if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.originalText; }
-    alert("La génération du PDF a échoué. Vérifie ta connexion internet et réessaie.");
-  });
+  }, zone, 'recap-parcours-rqth.pdf', btn);
 }
 
 function restart(){
