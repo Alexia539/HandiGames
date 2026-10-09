@@ -274,10 +274,38 @@ main{ flex:1; max-width:760px; width:100%; margin:0 auto; padding:1.1rem 1rem 3r
   transition: width 0.5s ease;
 }
 .global-progress .gp-label{ font-weight:800; font-size:0.82em; white-space:nowrap; }
+.global-progress .gp-count{ font-size:0.78em; font-weight:700; color:var(--text-secondary); white-space:nowrap; }
 .global-progress .gp-badge{
   font-size:0.78em; font-weight:800; background:var(--surface-muted); padding:0.25rem 0.6rem; border-radius:10px;
   white-space:nowrap;
 }
+.entry-progress{ margin:1.1rem 0 0; }
+
+/* ---------- BADGES (gamification) ---------- */
+.badges-strip{ margin:1.2rem 0 0; }
+.badges-strip-head{
+  display:flex; align-items:center; gap:0.4rem; font-family:var(--font-display); font-weight:700;
+  font-size:1em; color:var(--text-primary); margin-bottom:0.6rem;
+}
+.badges-strip-head span{ color:var(--text-secondary); font-weight:800; font-size:0.85em; }
+.badges-strip-row{
+  display:flex; gap:0.7rem; overflow-x:auto; padding-bottom:0.3rem; -webkit-overflow-scrolling:touch;
+}
+.badge-chip{
+  flex-shrink:0; width:76px; display:flex; flex-direction:column; align-items:center; gap:0.4rem; text-align:center;
+}
+.badge-chip-ico{
+  width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:var(--surface-muted); color:var(--text-secondary); border:2.5px dashed var(--surface-border);
+}
+.badge-chip-ico .ico-svg{ width:26px; height:26px; }
+.badge-chip--earned .badge-chip-ico{
+  background: linear-gradient(145deg, color-mix(in srgb, var(--chapter-color) 80%, #fff 20%), var(--chapter-color));
+  color:var(--text-on-accent); border-style:solid; border-color:var(--chapter-color);
+  box-shadow:2px 2px 0 rgba(0,0,0,0.18);
+}
+.badge-chip-label{ font-size:0.72em; font-weight:700; color:var(--text-secondary); line-height:1.2; }
+.badge-chip--earned .badge-chip-label{ color:var(--text-primary); }
 
 .route-strip{
   display:grid; grid-template-columns:repeat(12,1fr); gap:5px;
@@ -420,6 +448,25 @@ main{ flex:1; max-width:760px; width:100%; margin:0 auto; padding:1.1rem 1rem 3r
 .entry-wrap h1 .accent{ color:var(--accent-coral); }
 .entry-wrap p.lede{ color:var(--text-secondary); max-width:480px; margin:0 auto 1.5rem; font-size:1.02em; font-weight:600; }
 
+.entry-hero-icon{
+  width:64px; height:64px; margin:0 auto 0.9rem; border-radius:50%;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent-coral) 80%, #fff 20%), var(--accent-coral));
+  display:flex; align-items:center; justify-content:center; color:var(--text-on-accent);
+  box-shadow:3px 3px 0 rgba(0,0,0,0.18); transform:rotate(-6deg);
+}
+.entry-hero-icon .ico-svg{ width:32px; height:32px; }
+.entry-cartouche p.lede-tagline{
+  font-family:var(--font-display); font-weight:700; font-size:1.15em; color:var(--accent-coral);
+  margin:0 0 0.9rem;
+}
+.entry-cartouche p.lede{ text-align:left; max-width:none; margin:0 0 0.9rem; }
+.entry-cartouche p.lede:last-of-type{ margin-bottom:0; }
+.entry-cartouche p.lede-cta{
+  display:flex; align-items:center; justify-content:center; gap:0.5rem;
+  font-family:var(--font-display); font-weight:700; font-size:1.05em; color:var(--accent-teal-strong);
+  margin:1.1rem 0 0; padding-top:1rem; border-top:2px dashed var(--surface-border);
+}
+
 .entry-cartouche{
   background:var(--surface-card); border:3px solid var(--surface-border); border-radius:var(--radius-lg);
   padding:1.8rem 1.6rem; margin:0 auto 1.6rem; max-width:560px;
@@ -434,20 +481,19 @@ main{ flex:1; max-width:760px; width:100%; margin:0 auto; padding:1.1rem 1rem 3r
   pointer-events:none;
 }
 .entry-cartouche > *{ position:relative; }
-.entry-cartouche p.lede{ margin-bottom:0; }
 
 .chapter-grid{ display:flex; flex-direction:column; gap:1.2rem; margin-top:1rem; text-align:left; }
 
 .entry-done-banner{
   display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
   background: linear-gradient(135deg, var(--accent-coral), color-mix(in srgb, var(--accent-coral) 70%, var(--accent-sun-pop)));
-  color:#fff; border-radius:var(--radius-lg); padding:1.2rem 1.4rem; margin:1.2rem 0;
+  color:var(--text-on-accent); border-radius:var(--radius-lg); padding:1.2rem 1.4rem; margin:1.2rem 0;
   box-shadow: 4px 4px 0 var(--surface-border);
 }
 .entry-done-banner .edb-txt{ display:flex; flex-direction:column; gap:0.2rem; }
 .entry-done-banner .edb-txt span{ font-weight:600; opacity:0.95; font-size:0.92rem; }
 .entry-done-banner .edb-btn{
-  background:#fff; color:var(--accent-coral); border:none; border-radius:999px; font-weight:800;
+  background:var(--surface-card); color:var(--text-primary); border:none; border-radius:999px; font-weight:800;
   padding:0.7rem 1.2rem; cursor:pointer; font-family:inherit; white-space:nowrap;
   box-shadow: 3px 3px 0 rgba(0,0,0,0.15); transition: transform 0.15s;
 }
@@ -479,14 +525,19 @@ main{ flex:1; max-width:760px; width:100%; margin:0 auto; padding:1.1rem 1rem 3r
 .chapter-card:nth-child(5){ --chapter-color: var(--accent-coral-strong); }
 .chapter-card:nth-child(6){ --chapter-color: var(--accent-violet-strong); }
 
+.chapter-card .card-deco{
+  position:absolute; right:-6px; bottom:-20px; width:104px; height:104px; color:var(--chapter-color, var(--accent-coral));
+  opacity:0.1; pointer-events:none;
+}
+.chapter-card .card-deco .ico-svg{ width:100%; height:100%; }
 .chapter-card .cnum{
-  position:relative; font-family:var(--font-display); font-weight:700; color:var(--text-on-accent); font-size:1.45em; flex-shrink:0; width:60px; height:60px;
-  border-radius:18px; display:flex; align-items:center; justify-content:center; transform: rotate(-4deg);
-  background: var(--chapter-color, var(--accent-coral));
+  position:relative; font-family:var(--font-display); font-weight:700; color:var(--text-on-accent); font-size:1.45em; flex-shrink:0; width:72px; height:72px;
+  border-radius:20px; display:flex; align-items:center; justify-content:center; transform: rotate(-4deg);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--chapter-color, var(--accent-coral)) 80%, #fff 20%), var(--chapter-color, var(--accent-coral)));
   box-shadow:3px 3px 0 rgba(0,0,0,0.18);
   transition: transform 0.2s;
 }
-.chapter-card .cnum .ico-svg{ width:30px; height:30px; }
+.chapter-card .cnum .ico-svg{ width:38px; height:38px; }
 .chapter-card .cnum-badge{
   position:absolute; bottom:-7px; right:-7px; width:22px; height:22px; border-radius:8px;
   background:var(--surface-card); color:var(--text-primary); font-size:0.62em; font-weight:800;
@@ -812,6 +863,7 @@ const ICONS = {
   check: '<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
   checkCircle: '<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9"/></svg>',
   sparkles: '<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></svg>',
+  rocket: '<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
   bulb: '<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0012 2z"/></svg>',
   flag: '<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h13l-3 4 3 4H5"/></svg>',
   star: '<svg class="ico-svg" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 17l-6.2 3.4 1.6-6.8L2.2 9l6.9-.7L12 2z"/></svg>',
@@ -1291,12 +1343,42 @@ function goFinal(){
   render(false);
 }
 
+/* Un badge par chapitre, débloqué quand toutes ses étapes sont validées.
+   Affiché sur l'accueil (collection en cours) et sur l'écran final
+   (collection complète). */
+function badgesStripHtml(){
+  const chips = chapters.map((c, idx) => {
+    const [start, end] = c.stationRange;
+    const earned = Array.from({length:end-start+1}, (_,k)=>start+k).every(i2 => state.done[i2]);
+    const cls = 'badge-chip' + (earned ? ' badge-chip--earned' : '');
+    const label = c.title + (earned ? ' : badge obtenu' : ' : pas encore obtenu');
+    return `
+      <div class="${cls}" style="--chapter-color:${chapterColors[idx]}" role="img" aria-label="${label}">
+        <div class="badge-chip-ico">${earned ? icon(chapterIllustrations[c.id]) : icon('lock')}</div>
+        <span class="badge-chip-label">${c.title}</span>
+      </div>`;
+  }).join('');
+  const earnedCount = chapters.filter((c, idx) => {
+    const [start, end] = c.stationRange;
+    return Array.from({length:end-start+1}, (_,k)=>start+k).every(i2 => state.done[i2]);
+  }).length;
+  return `
+    <div class="badges-strip">
+      <div class="badges-strip-head">${icon('trophy')} Mes badges <span>${earnedCount}/${chapters.length}</span></div>
+      <div class="badges-strip-row">${chips}</div>
+    </div>`;
+}
+
 function renderEntry(){
-  const doneBanner = allStationsDone() ? `
+  const doneQCount = Object.keys(state.progress).length;
+  const allDone = allStationsDone();
+  const doneBanner = allDone ? `
     <div class="entry-done-banner">
       <div class="edb-txt"><strong>${icon('trophy')} Parcours terminé !</strong><span>Tu as fini les 12 étapes : retrouve ton certificat et ton récapitulatif.</span></div>
       <button class="edb-btn" onclick="goFinal()">${icon('medal')} Voir mon parcours terminé</button>
     </div>` : '';
+  const progressHtml = (!allDone && doneQCount > 0) ? `<div class="entry-progress">${globalProgressHtml()}</div>` : '';
+  const badgesHtml = badgesStripHtml();
   const cards = chapters.map((c, idx) => {
     const range = c.stationRange;
     const stCount = range[1] - range[0] + 1;
@@ -1308,6 +1390,7 @@ function renderEntry(){
     const ariaLabel = chapDone ? ` aria-label="${c.title}, chapitre déjà terminé"` : '';
     return `
       <button class="${cls}" ${clickAttr}${ariaLabel}>
+        <div class="card-deco" aria-hidden="true">${icon(chapterIllustrations[c.id])}</div>
         <div class="cnum" aria-hidden="true">${icon(chapterIllustrations[c.id])}<span class="cnum-badge">${String(idx+1).padStart(2,'0')}</span></div>
         <div class="ctxt"><strong>${c.title}</strong><span>Étapes ${range[0]+1} à ${range[1]+1}</span></div>
         <div class="ccount">${stCount} étape${stCount>1?'s':''} · ${qCount} questions${chapDone ? '<span class="ccheck">' + icon('check') + ' Terminé</span>' : ''}</div>
@@ -1317,11 +1400,18 @@ function renderEntry(){
   return `
     <div class="entry-wrap">
       <div class="entry-cartouche">
-        <div class="kicker">${icon('sparkles')} C'est parti pour l'aventure</div>
+        <div class="entry-hero-icon" aria-hidden="true">${icon('rocket')}</div>
+        <div class="kicker">${icon('sparkles')} C'est parti pour l'aventure !</div>
         <h1 tabindex="-1" data-focus="1">12 étapes à explorer.<br><span class="accent">${totalQuestions()} questions</span> qui vont te surprendre.</h1>
-        <p class="lede">Le parcours se joue en 6 chapitres et 12 étapes, un peu comme un jeu de piste. Choisis un chapitre pour te lancer, avance question après question grâce aux boutons « Suivant » et « Précédent », et amuse-toi : chaque bonne réponse t'en apprend un peu plus sur tes droits. Pas de stress : il n'y a pas de note, tu avances à ton rythme. Ta progression reste affichée tant que tu gardes la page ouverte.</p>
+        <p class="lede-tagline">Prêt à relever le défi ?</p>
+        <p class="lede">Pars à la découverte de tes droits à travers 6 chapitres et 12 étapes ! À chaque étape, de nouvelles questions t'attendent pour tester tes connaissances, découvrir des informations surprenantes et avancer dans ton aventure.</p>
+        <p class="lede">Choisis ton chapitre, explore les étapes et progresse à ton rythme grâce aux boutons « Suivant » et « Précédent ».</p>
+        <p class="lede">Ici, pas de chrono, pas de note et pas de pression ! Chaque réponse est une occasion d'apprendre.</p>
+        <p class="lede-cta">${icon('flag')} À toi de jouer : termine les 12 étapes pour débloquer ton certificat et tous tes badges !</p>
       </div>
+      ${progressHtml}
       ${doneBanner}
+      ${badgesHtml}
       <div class="chapter-grid">${cards}</div>
       <p class="entry-hint">${icon('bulb')} Astuce animateur : chaque équipe peut démarrer où elle veut, l'appli affiche ce qui est déjà validé pendant la partie.</p>
     </div>
@@ -1368,6 +1458,7 @@ function globalProgressHtml(){
     <div class="global-progress" role="img" aria-label="Progression globale : ${doneQ} questions sur ${totalQ}, ${doneStations} étapes validées sur ${stations.length}">
       <span class="gp-label">${icon('flag')} ${pct}%</span>
       <div class="gp-track"><div class="gp-fill" style="width:${pct}%"></div></div>
+      <span class="gp-count">${doneQ}/${totalQ} questions</span>
       <span class="gp-badge">${doneStations}/${stations.length} étapes ${icon('star')}</span>
     </div>
   `;
@@ -1688,6 +1779,7 @@ function renderFinal(){
       <div class="label">${icon('trophy')} Passeport des droits</div>
       <h2 tabindex="-1" data-focus="1">Parcours terminé !</h2>
       <div class="score-line">${stationsDone} / ${stations.length} étapes · ${qDone} / ${totalQuestions()} questions complétées</div>
+      ${badgesStripHtml()}
       <div class="rights-list">${items}</div>
       <div class="cert-box">
         <div class="label cert-label">${icon('medal')} Ton certificat personnalisé</div>
