@@ -1790,19 +1790,6 @@ function renderFinal(){
       </div>
     </div>
     <button class="restart-btn download-btn" onclick="downloadRecap()">${icon('download')} Télécharger le récapitulatif (PDF)</button>
-    <div class="resource-box">
-      <h3>Emporte le parcours avec toi</h3>
-      <p>Scanne ce code pour retrouver l'appli sur ton téléphone, refaire le parcours ou le partager.</p>
-      <div class="qr-frame">
-        <img class="qr-block" src="${QR_IMG}" alt="QR code du jeu de piste RQTH, à scanner avec ton téléphone">
-      </div>
-      <div class="qr-note">${QR_URL_LABEL}</div>
-      <div class="how-steps" aria-label="Comment jouer">
-        <div class="how-step"><span class="how-ico" aria-hidden="true">${icon('qr')}</span><span>Scanne le code</span></div>
-        <div class="how-step"><span class="how-ico" aria-hidden="true">${icon('flag')}</span><span>Choisis un chapitre</span></div>
-        <div class="how-step"><span class="how-ico" aria-hidden="true">${icon('checkCircle')}</span><span>Réponds et progresse</span></div>
-      </div>
-    </div>
     <button class="restart-btn" onclick="restart()">Recommencer le parcours</button>
   `;
 }
@@ -1998,11 +1985,15 @@ function buildRecapInner(){
   return `
     <div style="font-family:'Nunito','Segoe UI',sans-serif; max-width:100%; padding:8px 4px 24px; color:#2B2440; line-height:1.5; background:#ffffff; box-sizing:border-box;">
       <div style="text-align:center; margin:0 0 26px;">
+        <img src="${MASCOT_IMG}" alt="" aria-hidden="true" style="width:72px; height:auto; margin:0 auto 10px; display:block;">
         <h1 style="font-family:'Fredoka','Nunito',sans-serif; font-size:26px; margin:0 0 6px; color:#C23B22;">Le Parcours RQTH</h1>
         <p style="color:#5A5266; font-weight:700; margin:0; text-transform:uppercase; letter-spacing:1px; font-size:12.5px;">Récapitulatif</p>
         <p style="color:#5A5266; font-weight:600; margin:10px 0 0; font-size:13.5px;">Toutes les bonnes réponses, les explications et tes droits — à garder pour toi après l'atelier.</p>
       </div>
       ${sections}
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:28px; padding-top:16px; border-top:2px dashed #E8D2AE; font-size:12.5px; color:#5A5266; font-weight:700; text-align:center;">
+        <span style="display:inline-flex; color:#FFC93C;">${icon('sparkles')}</span>Un jeu Handi'Games par Handi'LAB — UGECAM Centre La Mollière
+      </div>
     </div>`;
 }
 
